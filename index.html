@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirim Pesan Bot Telegram</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-image: url('https://pomf2.lain.la/f/08o4pxan.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+        label {
+            font-size: 16px;
+        }
+        input, button, textarea {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 14px;
+            width: 100%;
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 16px;
+            color: green;
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4caf50;
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        #status.show {
+            top: 20px;
+            opacity: 1;
+            visibility: visible;
+        }
+        #credits {
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Kirim Pesan ke Bot Telegram</h2>
+
+    <label for="token">TAEGET TOKEN BOT:</label>
+    <input type="text" id="token" placeholder="Masukkan Token Bot">
+
+    <label for="chatId">ID TAEGET:</label>
+    <input type="text" id="chatId" placeholder="Masukkan ID Target">
+
+    <label for="jumlahPesan">JUMLAH PESAN:</label>
+    <input type="number" id="jumlahPesan" value="1">
+
+    <label for="pesan">COSTOM PESAN:</label>
+    <textarea id="pesan" placeholder="Masukkan pesan yang ingin dikirim"></textarea>
+
+    <button onclick="kirimPesan()">KIRIM</button>
+
+    <div id="status"></div>
+    <div id="credits">Pembuat Adalah Rendzz Official</div>
+
+    <script>
+        function kirimPesan() {
+            const token = document.getElementById('token').value;
+            const chatId = document.getElementById('chatId').value;
+            const jumlahPesan = document.getElementById('jumlahPesan').value;
+            const pesan = document.getElementById('pesan').value;
+            const statusDiv = document.getElementById('status');
+            
+            if (!token || !chatId || !jumlahPesan || !pesan) {
+                statusDiv.textContent = 'Harap isi semua kolom!';
+                statusDiv.style.color = 'red';
+                showStatus();
+                return;
+            }
+
+            const url = `https://api.telegram.org/bot${token}/sendMessage`;
+            let pesanTerkirim = 0;
+            
+            for (let i = 0; i < jumlahPesan; i++) {
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: pesan, // Mengirim pesan kustom tanpa tambahan angka
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        pesanTerkirim++;
+                        if (pesanTerkirim === jumlahPesan) {
+                            statusDiv.textContent = 'STATUR TERKIRIM!';
+                            statusDiv.style.color = 'green';
+                            showStatus();
+                        }
+                    } else {
+                        statusDiv.textContent = 'Terjadi kesalahan dalam mengirim pesan.';
+                        statusDiv.style.color = 'red';
+                        showStatus();
+                    }
+                })
+                .catch(error => {
+                    statusDiv.textContent = 'Error: ' + error.message;
+                    statusDiv.style.color = 'red';
+                    showStatus();
+                });
+            }
+        }
+
+        function showStatus() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.classList.add('show');
+            setTimeout(() => {
+                statusDiv.classList.remove('show');
+            }, 3000); // Notifikasi muncul selama 3 detik
+        }
+    </script>
+
+</body>
+</html>
